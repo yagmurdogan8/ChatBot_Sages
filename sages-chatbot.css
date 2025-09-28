@@ -1,0 +1,218 @@
+/* SAGES Chatbot Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.sages-chatbot-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 350px;
+    height: 500px;
+    background: #fff;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    display: none;
+    flex-direction: column;
+    z-index: 1000;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.sages-chatbot-container.active {
+    display: flex;
+}
+
+.sages-chatbot-header {
+    background: linear-gradient(135deg, #c62828, #d32f2f);
+    color: white;
+    padding: 15px;
+    border-radius: 15px 15px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sages-chatbot-header h3 {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.sages-close-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.sages-chatbot-messages {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+    background: #f8f9fa;
+}
+
+.sages-message {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: flex-start;
+}
+
+.sages-message.sages-user {
+    justify-content: flex-end;
+}
+
+.sages-message-content {
+    max-width: 80%;
+    padding: 10px 15px;
+    border-radius: 18px;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.sages-message.sages-bot .sages-message-content {
+    background: #ffebee;
+    color: #333;
+    border-bottom-left-radius: 5px;
+}
+
+.sages-message.sages-user .sages-message-content {
+    background: #d32f2f;
+    color: white;
+    border-bottom-right-radius: 5px;
+}
+
+.sages-chatbot-input {
+    padding: 15px;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    gap: 10px;
+}
+
+.sages-chatbot-input input {
+    flex: 1;
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 25px;
+    outline: none;
+    font-size: 14px;
+}
+
+.sages-chatbot-input button {
+    background: #d32f2f;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.sages-chatbot-input button:hover {
+    background: #c62828;
+}
+
+.sages-chatbot-toggle {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #c62828, #d32f2f);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    z-index: 1001;
+    transition: transform 0.3s ease;
+}
+
+.sages-chatbot-toggle:hover {
+    transform: scale(1.1);
+}
+
+.sages-quick-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.sages-quick-action-btn {
+    background: #f0f0f0;
+    border: 1px solid #ddd;
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.sages-quick-action-btn:hover {
+    background: #e0e0e0;
+}
+
+.sages-whatsapp-redirect {
+    background: #25d366;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 10px;
+    margin: 10px 0;
+    text-align: center;
+    font-weight: 600;
+}
+
+.sages-whatsapp-redirect a {
+    color: white;
+    text-decoration: none;
+}
+
+.sages-typing-indicator {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 10px 15px;
+    background: #ffebee;
+    border-radius: 18px;
+    max-width: 80px;
+}
+
+.sages-typing-dot {
+    width: 8px;
+    height: 8px;
+    background: #d32f2f;
+    border-radius: 50%;
+    animation: sages-typing 1.4s infinite;
+}
+
+.sages-typing-dot:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.sages-typing-dot:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes sages-typing {
+    0%, 60%, 100% {
+        transform: translateY(0);
+    }
+    30% {
+        transform: translateY(-10px);
+    }
+}
+
+@media (max-width: 480px) {
+    .sages-chatbot-container {
+        width: 100%;
+        height: 100%;
+        bottom: 0;
+        right: 0;
+        border-radius: 0;
+    }
+}

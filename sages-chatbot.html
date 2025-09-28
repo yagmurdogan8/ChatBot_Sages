@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAGES Chatbot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        .chatbot-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 350px;
+            height: 500px;
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: none;
+            flex-direction: column;
+            z-index: 1000;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .chatbot-container.active {
+            display: flex;
+        }
+
+        .chatbot-header {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            padding: 15px;
+            border-radius: 15px 15px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chatbot-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .chatbot-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-content {
+            max-width: 80%;
+            padding: 10px 15px;
+            border-radius: 18px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .message.bot .message-content {
+            background: #e3f2fd;
+            color: #333;
+            border-bottom-left-radius: 5px;
+        }
+
+        .message.user .message-content {
+            background: #2196f3;
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+
+        .chatbot-input {
+            padding: 15px;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+        }
+
+        .chatbot-input input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        .chatbot-input button {
+            background: #2196f3;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .chatbot-input button:hover {
+            background: #1976d2;
+        }
+
+        .chatbot-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 1001;
+            transition: transform 0.3s ease;
+        }
+
+        .chatbot-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        .quick-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .quick-action-btn {
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .quick-action-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .whatsapp-redirect {
+            background: #25d366;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .whatsapp-redirect a {
+            color: white;
+            text-decoration: none;
+        }
+
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 10px 15px;
+            background: #e3f2fd;
+            border-radius: 18px;
+            max-width: 80px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: #2196f3;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .chatbot-container {
+                width: 100%;
+                height: 100%;
+                bottom: 0;
+                right: 0;
+                border-radius: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Chatbot Toggle Button -->
+    <button class="chatbot-toggle" onclick="toggleChatbot()">
+        💬
+    </button>
+
+    <!-- Chatbot Container -->
+    <div class="chatbot-container" id="chatbotContainer">
+        <div class="chatbot-header">
+            <h3>SAGES Danışman</h3>
+            <button class="close-btn" onclick="toggleChatbot()">×</button>
+        </div>
+        
+        <div class="chatbot-messages" id="chatbotMessages">
+            <div class="message bot">
+                <div class="message-content">
+                    Merhaba! 👋 SAGES Yurtdışı Eğitim Danışmanlığı'na hoş geldiniz! Size nasıl yardımcı olabilirim?
+                    <div class="quick-actions">
+                        <button class="quick-action-btn" onclick="sendQuickMessage('Hangi ülkelerde eğitim alabilirim?')">🌍 Ülke Seçenekleri</button>
+                        <button class="quick-action-btn" onclick="sendQuickMessage('Vize işlemleri nasıl yapılır?')">🛂 Vize İşlemleri</button>
+                        <button class="quick-action-btn" onclick="sendQuickMessage('Fiyatlar hakkında bilgi alabilir miyim?')">💰 Fiyat Bilgileri</button>
+                        <button class="quick-action-btn" onclick="sendQuickMessage('Burs imkanları neler?')">🎓 Burs İmkanları</button>
+                        <button class="quick-action-btn" onclick="sendQuickMessage('Konaklama seçenekleri neler?')">🏠 Konaklama</button>
+                        <button class="quick-action-btn" onclick="sendQuickMessage('Dil sınavları hakkında bilgi')">🗣️ Dil Sınavları</button>
+                        <button class="quick-action-btn" onclick="sendQuickMessage('İletişim bilgileriniz neler?')">📞 İletişim</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="chatbot-input">
+            <input type="text" id="userInput" placeholder="Mesajınızı yazın..." onkeypress="handleKeyPress(event)">
+            <button onclick="sendMessage()">➤</button>
+        </div>
+    </div>
+
+    <script>
+        // Chatbot state
+        let isTyping = false;
+        
+        // Knowledge base for SAGES
+        const knowledgeBase = {
+            // Ülke bilgileri
+            "ülke": {
+                "birleşik krallık": "🇬🇧 <strong>Birleşik Krallık Eğitimi:</strong><br/>• Dil sınavı: IELTS 6.0-7.0 veya TOEFL 80-100<br/>• Başvuru: UCAS sistemi (Ekim-Ocak arası)<br/>• Eğitim süresi: Lisans 3 yıl, Yüksek lisans 1 yıl<br/>• Yıllık eğitim ücreti: £15,000-35,000<br/>• Aylık yaşam maliyeti: £800-1,200<br/>• Çalışma izni: Haftalık 20 saat<br/>• Popüler şehirler: London, Manchester, Edinburgh",
+                "almanya": "🇩🇪 <strong>Almanya Eğitimi:</strong><br/>• Dil sınavı: TestDaF TDN 4 veya DSH 2<br/>• Başvuru: uni-assist (Temmuz-Eylül)<br/>• Eğitim süresi: Lisans 3 yıl, Yüksek lisans 2 yıl<br/>• Yıllık eğitim ücreti: Devlet üniversiteleri ücretsiz (sadece semester fee €150-300)<br/>• Aylık yaşam maliyeti: €700-1,000<br/>• Çalışma izni: Haftalık 20 saat<br/>• Popüler şehirler: Berlin, Munich, Hamburg",
+                "kanada": "🇨🇦 <strong>Kanada Eğitimi:</strong><br/>• Dil sınavı: IELTS 6.0-6.5 veya TOEFL 80-90<br/>• Başvuru: Üniversiteye göre değişir (Ocak-Mart)<br/>• Eğitim süresi: Lisans 4 yıl, Yüksek lisans 1-2 yıl<br/>• Yıllık eğitim ücreti: $15,000-30,000<br/>• Aylık yaşam maliyeti: $1,000-1,500<br/>• Çalışma izni: Haftalık 20 saat<br/>• Popüler şehirler: Toronto, Vancouver, Montreal",
+                "abd": "🇺🇸 <strong>ABD Eğitimi:</strong><br/>• Dil sınavı: IELTS 6.5-7.0 veya TOEFL 80-100<br/>• Akademik sınav: SAT (Lisans) veya GRE/GMAT (Yüksek lisans)<br/>• Başvuru: Common Application (Ocak-Mart)<br/>• Eğitim süresi: Lisans 4 yıl, Yüksek lisans 2 yıl<br/>• Yıllık eğitim ücreti: $20,000-60,000<br/>• Aylık yaşam maliyeti: $1,500-2,500<br/>• Çalışma izni: Haftalık 20 saat<br/>• Popüler şehirler: New York, Los Angeles, Boston",
+                "fransa": "🇫🇷 <strong>Fransa Eğitimi:</strong><br/>• Dil sınavı: DELF B2 veya DALF C1<br/>• Başvuru: Campus France (Ocak-Mart)<br/>• Eğitim süresi: Lisans 3 yıl, Yüksek lisans 2 yıl<br/>• Yıllık eğitim ücreti: Devlet üniversiteleri €170-600<br/>• Aylık yaşam maliyeti: €800-1,200<br/>• Çalışma izni: Haftalık 20 saat<br/>• Popüler şehirler: Paris, Lyon, Toulouse",
+                "italya": "🇮🇹 <strong>İtalya Eğitimi:</strong><br/>• Dil sınavı: CILS B2 veya CELI B2<br/>• Başvuru: Üniversiteye göre değişir (Mart-Mayıs)<br/>• Eğitim süresi: Lisans 3 yıl, Yüksek lisans 2 yıl<br/>• Yıllık eğitim ücreti: €1,000-4,000<br/>• Aylık yaşam maliyeti: €600-1,000<br/>• Çalışma izni: Haftalık 20 saat<br/>• Popüler şehirler: Milan, Rome, Florence",
+                "polonya": "🇵🇱 <strong>Polonya Eğitimi:</strong><br/>• Dil sınavı: İngilizce B2 veya Lehçe B2<br/>• Başvuru: Üniversiteye göre değişir (Mart-Temmuz)<br/>• Eğitim süresi: Lisans 3 yıl, Yüksek lisans 2 yıl<br/>• Yıllık eğitim ücreti: €2,000-8,000<br/>• Aylık yaşam maliyeti: €400-700<br/>• Çalışma izni: Haftalık 20 saat<br/>• Popüler şehirler: Warsaw, Krakow, Gdansk",
+                "macaristan": "🇭🇺 <strong>Macaristan Eğitimi:</strong><br/>• Dil sınavı: İngilizce B2 veya Macarca B2<br/>• Başvuru: Üniversiteye göre değişir (Mart-Haziran)<br/>• Eğitim süresi: Lisans 3-4 yıl, Yüksek lisans 2 yıl<br/>• Yıllık eğitim ücreti: €3,000-12,000<br/>• Aylık yaşam maliyeti: €500-800<br/>• Çalışma izni: Haftalık 20 saat<br/>• Popüler şehirler: Budapest, Debrecen, Szeged",
+                "letonya": "🇱🇻 <strong>Letonya Eğitimi:</strong><br/>• Dil sınavı: İngilizce B2 veya Letonca B2<br/>• Başvuru: Üniversiteye göre değişir (Mart-Haziran)<br/>• Eğitim süresi: Lisans 3-4 yıl, Yüksek lisans 2 yıl<br/>• Yıllık eğitim ücreti: €2,000-6,000<br/>• Aylık yaşam maliyeti: €400-600<br/>• Çalışma izni: Haftalık 20 saat<br/>• Popüler şehirler: Riga, Daugavpils, Liepaja",
+                "estonya": "🇪🇪 <strong>Estonya Eğitimi:</strong><br/>• Dil sınavı: İngilizce B2 veya Estonca B2<br/>• Başvuru: Üniversiteye göre değişir (Mart-Haziran)<br/>• Eğitim süresi: Lisans 3-4 yıl, Yüksek lisans 2 yıl<br/>• Yıllık eğitim ücreti: €2,000-8,000<br/>• Aylık yaşam maliyeti: €500-800<br/>• Çalışma izni: Haftalık 20 saat<br/>• Popüler şehirler: Tallinn, Tartu, Narva"
+            },
+            
+            // Eğitim programları
+            "program": {
+                "lisans": "Lisans eğitimi için lise diploması, dil sınavı sonuçları ve üniversite başvuru belgeleri gereklidir. Başvuru süreci genellikle 1 yıl önceden başlar. SAGES olarak tüm başvuru süreçlerinde yanınızdayız.",
+                "yüksek lisans": "Yüksek lisans için lisans diploması, dil sınavı sonuçları, referans mektupları ve motivasyon mektubu gereklidir. Başvuru süreci genellikle 6-8 ay önceden başlar.",
+                "doktora": "Doktora için yüksek lisans diploması, araştırma önerisi, referans mektupları ve dil sınavı sonuçları gereklidir. Başvuru süreci genellikle 1 yıl önceden başlar.",
+                "dil okulu": "Dil okulları için genellikle sadece pasaport ve başvuru formu yeterlidir. Başvuru süreci 2-3 ay önceden başlar. İngiltere, İrlanda, Malta ve İskoçya'da dil okulu seçeneklerimiz bulunmaktadır.",
+                "lise": "Lise eğitimi için ortaokul diploması, dil sınavı sonuçları ve başvuru belgeleri gereklidir. Başvuru süreci genellikle 6-8 ay önceden başlar."
+            },
+            
+            // Vize işlemleri
+            "vize": {
+                "öğrenci vizesi": "Öğrenci vizesi için kabul mektubu, finansal belgeler, sağlık sigortası ve vize başvuru formu gereklidir. Başvuru süreci 2-3 ay sürebilir. SAGES olarak tüm vize işlemlerinizde yanınızdayız.",
+                "vize süreci": "Vize süreci: 1) Üniversite kabulü, 2) Finansal belgelerin hazırlanması, 3) Vize başvuru formunun doldurulması, 4) Randevu alınması, 5) Başvuru yapılması. Toplam süre 2-3 aydır.",
+                "vize ücreti": "Vize ücretleri ülkeye göre değişir: ABD $160, İngiltere £363, Almanya €75, Kanada $150, Fransa €99. Bu ücretler değişebilir.",
+                "vize reddi": "Vize reddi durumunda yeniden başvuru yapabilirsiniz. Red sebebini öğrenip eksiklikleri tamamlayarak tekrar başvurabilirsiniz."
+            },
+            
+            // Fiyat bilgileri
+            "fiyat": {
+                "danışmanlık": "SAGES danışmanlık hizmetlerimiz ücretsizdir. Sadece başvuru ve vize işlemleri için ücret alınır.",
+                "eğitim maliyeti": "Eğitim maliyetleri ülkeye göre değişir: Almanya ve Fransa'da devlet üniversiteleri ücretsiz, ABD'de yıllık $20,000-60,000, İngiltere'de yıllık £15,000-35,000, Kanada'da yıllık $15,000-30,000 arasındadır.",
+                "yaşam maliyeti": "Aylık yaşam maliyetleri: ABD $1,500-2,500, İngiltere £800-1,200, Almanya €700-1,000, Kanada $1,000-1,500, Fransa €800-1,200 arasındadır."
+            },
+            
+            // İletişim bilgileri
+            "iletişim": {
+                "adres": "Cumhuriyet Mah. Atatürk Bulvarı No: 83/16 Çankaya/Ankara",
+                "telefon": "+90 0312 431 3470",
+                "email": "sages@sages.com.tr",
+                "whatsapp": "+90 506 330 96 99",
+                "çalışma saatleri": "Pazartesi-Cuma: 09:00-18:00, Cumartesi: 09:00-14:00"
+            },
+            
+            // Genel bilgiler
+            "genel": {
+                "sages": "SAGES, yurtdışı eğitim danışmanlığında 15+ yıllık deneyime sahip güvenilir bir kurumdur. 20+ ülkede eğitim imkanları sunuyoruz.",
+                "hizmetler": "SAGES olarak üniversite seçimi, başvuru süreçleri, vize işlemleri, konaklama organizasyonu, kariyer planlaması ve 24/7 destek hizmetleri sunuyoruz.",
+                "başarı oranı": "Vize başarı oranımız %95'in üzerindedir. 1000+ başarılı öğrencimiz bulunmaktadır.",
+                "ücretsiz danışmanlık": "İlk danışmanlık görüşmemiz tamamen ücretsizdir. Size en uygun ülke ve program seçimi için detaylı analiz yapıyoruz."
+            }
+        };
+
+        // Function to toggle chatbot visibility
+        function toggleChatbot() {
+            const container = document.getElementById('chatbotContainer');
+            container.classList.toggle('active');
+        }
+
+        // Function to send quick message
+        function sendQuickMessage(message) {
+            document.getElementById('userInput').value = message;
+            sendMessage();
+        }
+
+        // Function to handle key press
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        // Function to add message to chat
+        function addMessage(content, isUser = false) {
+            const messagesContainer = document.getElementById('chatbotMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.innerHTML = content;
+            
+            messageDiv.appendChild(contentDiv);
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Function to show typing indicator
+        function showTypingIndicator() {
+            const messagesContainer = document.getElementById('chatbotMessages');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message bot';
+            typingDiv.id = 'typingIndicator';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'typing-indicator';
+            contentDiv.innerHTML = `
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            `;
+            
+            typingDiv.appendChild(contentDiv);
+            messagesContainer.appendChild(typingDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Function to hide typing indicator
+        function hideTypingIndicator() {
+            const typingIndicator = document.getElementById('typingIndicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+
+        // Function to find best response
+        function findBestResponse(userMessage) {
+            const message = userMessage.toLowerCase();
+            
+            // Check for country queries
+            for (const [country, info] of Object.entries(knowledgeBase.ülke)) {
+                if (message.includes(country)) {
+                    return info;
+                }
+            }
+            
+            // Check for program queries
+            for (const [program, info] of Object.entries(knowledgeBase.program)) {
+                if (message.includes(program)) {
+                    return info;
+                }
+            }
+            
+            // Check for visa queries
+            for (const [visa, info] of Object.entries(knowledgeBase.vize)) {
+                if (message.includes(visa)) {
+                    return info;
+                }
+            }
+            
+            // Check for price queries
+            for (const [price, info] of Object.entries(knowledgeBase.fiyat)) {
+                if (message.includes(price)) {
+                    return info;
+                }
+            }
+            
+            // Check for contact queries
+            for (const [contact, info] of Object.entries(knowledgeBase.iletişim)) {
+                if (message.includes(contact)) {
+                    return info;
+                }
+            }
+            
+            // Check for general queries
+            for (const [general, info] of Object.entries(knowledgeBase.genel)) {
+                if (message.includes(general)) {
+                    return info;
+                }
+            }
+            
+            // Specific keyword matches
+            if (message.includes('merhaba') || message.includes('selam') || message.includes('hello')) {
+                return "Merhaba! SAGES Yurtdışı Eğitim Danışmanlığı'na hoş geldiniz! Size nasıl yardımcı olabilirim?";
+            }
+            
+            if (message.includes('teşekkür') || message.includes('sağol')) {
+                return "Rica ederim! Başka sorularınız varsa çekinmeden sorabilirsiniz.";
+            }
+            
+            if (message.includes('görüşme') || message.includes('randevu')) {
+                return "Randevu almak için +90 0312 431 3470 numaralı telefonu arayabilir veya sages@sages.com.tr adresine e-posta gönderebilirsiniz.";
+            }
+            
+            if (message.includes('başvuru') || message.includes('application')) {
+                return "Başvuru süreci ülkeye ve programa göre değişir. Genellikle 6-12 ay önceden başlamanızı öneririz. Detaylı bilgi için bizimle iletişime geçebilirsiniz.";
+            }
+            
+            if (message.includes('sınav') || message.includes('test')) {
+                return "Dil sınavları (IELTS, TOEFL, SAT, ACT) ve diğer gerekli sınavlar hakkında detaylı bilgi için bizimle iletişime geçebilirsiniz.";
+            }
+            
+            if (message.includes('konaklama') || message.includes('yurt') || message.includes('ev')) {
+                return "Konaklama seçenekleri ülkeye göre değişir. Yurt, özel yurt, ev kiralama gibi seçenekler mevcuttur. Detaylı bilgi için bizimle iletişime geçebilirsiniz.";
+            }
+            
+            if (message.includes('burs') || message.includes('scholarship')) {
+                return "Burs imkanları ülkeye ve üniversiteye göre değişir. Akademik başarı, dil seviyesi ve diğer kriterlere göre burs alabilirsiniz. Detaylı bilgi için bizimle iletişime geçebilirsiniz.";
+            }
+            
+            if (message.includes('çalışma') || message.includes('work') || message.includes('iş')) {
+                return "Öğrenci vizesi ile çalışma izinleri ülkeye göre değişir. Genellikle haftalık 20 saat çalışma izni verilir. Detaylı bilgi için bizimle iletişime geçebilirsiniz.";
+            }
+            
+            if (message.includes('sağlık') || message.includes('health') || message.includes('sigorta')) {
+                return "Sağlık sigortası yurtdışı eğitim için zorunludur. Ülkeye göre farklı sigorta seçenekleri mevcuttur. Detaylı bilgi için bizimle iletişime geçebilirsiniz.";
+            }
+            
+            if (message.includes('dönüş') || message.includes('return') || message.includes('geri')) {
+                return "Eğitim sonrası dönüş süreci ve kariyer planlaması konusunda da size yardımcı olabiliriz. Detaylı bilgi için bizimle iletişime geçebilirsiniz.";
+            }
+            
+            // If no specific match found, return WhatsApp redirect
+            return null;
+        }
+
+        // Function to send message
+        function sendMessage() {
+            const userInput = document.getElementById('userInput');
+            const message = userInput.value.trim();
+            
+            if (message === '') return;
+            
+            // Add user message
+            addMessage(message, true);
+            userInput.value = '';
+            
+            // Show typing indicator
+            showTypingIndicator();
+            isTyping = true;
+            
+            // Simulate response delay
+            setTimeout(() => {
+                hideTypingIndicator();
+                isTyping = false;
+                
+                const response = findBestResponse(message);
+                
+                if (response) {
+                    addMessage(response);
+                } else {
+                    // WhatsApp redirect message
+                    const whatsappMessage = `
+                        <div class="whatsapp-redirect">
+                            <p>Bu soruyu daha detaylı cevaplamamız için lütfen bizimle WhatsApp üzerinden iletişime geçin:</p>
+                            <a href="https://wa.me/905063309699" target="_blank">WhatsApp'ta Konuş</a>
+                        </div>
+                        <p><strong>İletişim Bilgileri:</strong></p>
+                        <p>📞 Telefon: +90 0312 431 3470</p>
+                        <p>📧 E-posta: sages@sages.com.tr</p>
+                        <p>📍 Adres: Cumhuriyet Mah. Atatürk Bulvarı No: 83/16 Çankaya/Ankara</p>
+                    `;
+                    addMessage(whatsappMessage);
+                }
+            }, 1500);
+        }
+
+        // Initialize chatbot
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-open chatbot after 3 seconds
+            setTimeout(() => {
+                if (!localStorage.getItem('chatbotOpened')) {
+                    toggleChatbot();
+                    localStorage.setItem('chatbotOpened', 'true');
+                }
+            }, 3000);
+        });
+    </script>
+</body>
+</html>
