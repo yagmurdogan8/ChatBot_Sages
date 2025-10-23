@@ -80,8 +80,8 @@ class SAGESChatbot {
                 <button onclick="sendSagesQuickMessage('Hangi ülkelerde eğitim alabilirim?')">🌍 Ülke Seçenekleri</button>
                 <button onclick="sendSagesQuickMessage('Fiyatlar nasıl?')">💰 Fiyatlar</button>
                 <button onclick="sendSagesQuickMessage('Vize işlemleri nasıl?')">🛂 Vize</button>
-                <button onclick="sendSagesQuickMessage('Dil okulları hakkında bilgi')">🌍 Dil Okulları</button>
-                <button onclick="sendSagesQuickMessage('Yaz kampları hakkında bilgi')">☀️ Yaz Kampları</button>
+                <button onclick="sendSagesQuickMessage('Burs imkanları neler?')">🎓 Burs İmkanları</button>
+                <button onclick="sendSagesQuickMessage('Konaklama seçenekleri neler?')">🏠 Konaklama</button>
                 <button onclick="sendSagesQuickMessage('Dil sınavları hakkında bilgi')">🗣️ Dil Sınavları</button>
             </div>
             
